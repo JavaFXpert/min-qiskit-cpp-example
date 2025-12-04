@@ -21,10 +21,11 @@ include(FetchContent)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
 FetchContent_MakeAvailable(json)
 
-# Create the executable
+# Create the executables
 add_executable(bell_state src/main.cpp)
+add_executable(ghz_20q src/ghz_20q.cpp)
 
-# Include directories
+# Include directories for C++ targets
 target_include_directories(bell_state PRIVATE
     ${QISKIT_ROOT}/dist/c/include
     ${QISKIT_ROOT}/qiskit-cpp/src
@@ -65,6 +66,39 @@ if(QISKIT_IBM_RUNTIME_C_ROOT)
     )
 endif()
 
+# GHZ 20-qubit C++ example
+target_include_directories(ghz_20q PRIVATE
+    ${QISKIT_ROOT}/dist/c/include
+    ${QISKIT_ROOT}/qiskit-cpp/src
+    ${QISKIT_IBM_RUNTIME_C_ROOT}/include
+)
+
+if(APPLE)
+    target_link_libraries(ghz_20q PRIVATE
+        "-L${QISKIT_ROOT}/dist/c/lib -L${QISKIT_IBM_RUNTIME_C_ROOT}/build/cargo/debug -Wl,-rpath,${QISKIT_ROOT}/dist/c/lib -Wl,-rpath,${QISKIT_IBM_RUNTIME_C_ROOT}/build/cargo/debug"
+        qiskit
+        qiskit_ibm_runtime
+        nlohmann_json::nlohmann_json
+    )
+elseif(UNIX)
+    target_link_libraries(ghz_20q PRIVATE
+        "-L${QISKIT_ROOT}/dist/c/lib -L${QISKIT_IBM_RUNTIME_C_ROOT}/build/cargo/debug -Wl,-rpath,${QISKIT_ROOT}/dist/c/lib -Wl,-rpath,${QISKIT_IBM_RUNTIME_C_ROOT}/build/cargo/debug"
+        qiskit
+        qiskit_ibm_runtime
+        nlohmann_json::nlohmann_json
+    )
+elseif(MSVC)
+    target_link_directories(ghz_20q PUBLIC
+        ${QISKIT_ROOT}/target/release
+        ${QISKIT_IBM_RUNTIME_C_ROOT}/build/cargo/debug
+    )
+    target_link_libraries(ghz_20q PRIVATE
+        qiskit_cext.dll.lib
+        qiskit_ibm_runtime.dll.lib
+        nlohmann_json::nlohmann_json
+    )
+endif()
+
 # Pure C version using C API directly
 add_executable(bell_state_c src/bell_state_c.c)
 
@@ -97,4 +131,4 @@ elseif(MSVC)
 endif()
 
 # Installation
-install(TARGETS bell_state bell_state_c DESTINATION bin)
+install(TARGETS bell_state ghz_20q bell_state_c DESTINATION bin)
