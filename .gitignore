@@ -1,0 +1,15 @@
+# Build directory
+build/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+scratch.txt
+*.tmp
+
+# Claude Code
+.claude/
